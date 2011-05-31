@@ -430,7 +430,7 @@ trait Schema {
       case dva:DefaultValueAssignment    => {
 
         if(! dva.value.isInstanceOf[ConstantExpressionNode[_]])
-          error("error in declaration of column "+ table.prefixedName + "." + dva.left.nameOfProperty + ", " + 
+          error("error in declaration of column "+ table.prefixedName + "." + dva.left.nameOfProperty + ", " +
                 "only constant expressions are supported in 'defaultsTo' declaration")
 
         dva.left._defaultValue = Some(dva.value.asInstanceOf[ConstantExpressionNode[_]])
@@ -472,7 +472,7 @@ trait Schema {
       case caa:ColumnAttributeAssignment => {
         for(ca <- caa.columnAttributes if ca.isInstanceOf[AutoIncremented] && !(caa.left.isIdFieldOfKeyedEntity))
           error("Field " + caa.left.nameOfProperty + " of table " + table.name +
-                " is declared as autoIncrementeded, auto increment is currently only supported on KeyedEntity[A].id")
+                " is declared as autoIncremented, auto increment is currently only supported on KeyedEntity[A].id")
       }
       case dva:Any => {}
     }

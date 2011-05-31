@@ -5,16 +5,14 @@ import org.squeryl.{SessionFactory, Session}
 
 abstract class ConnectionClosingTest extends DbTestBase {
 
+  def dbSpecificSelectNow: String
+
   test("Closing statement should close connection"){
     val session = SessionFactory.newSession
-    val stmt = session.connection.prepareStatement("select now()")
+    val stmt = session.connection.prepareStatement(dbSpecificSelectNow)
     val rs = stmt.executeQuery
 
     session.connection.close
-
-    println("When " + session.connection.getClass.getName + " closes :")
-    println("statement is closed ? --> " + stmt.isClosed)
-    println("resultSet is closed ? --> " + rs.isClosed)
 
     stmt.isClosed should equal(false)
     rs.isClosed should equal(false)
