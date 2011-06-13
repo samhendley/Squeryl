@@ -44,5 +44,5 @@ class Postgresql_ConnectionClosing extends ConnectionClosingTest with Postgresql
   def dbSpecificSelectNow: String = "select now()"
 }
 
-
+class Postgresql_SubQueryTests extends SubQueryTests with Postgresql_Connection
 

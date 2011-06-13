@@ -39,3 +39,5 @@ class H2_LeftJoinTest extends LeftJoinTest with H2_Connection
 class H2_ConnectionClosing extends ConnectionClosingTest with H2_Connection {
   def dbSpecificSelectNow: String = "select now()"
 }
+
+class H2_SubQueryTests extends SubQueryTests with H2_Connection
