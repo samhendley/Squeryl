@@ -2,9 +2,8 @@ package org.squeryl.test
 
 import org.squeryl._
 import org.squeryl.framework.{SchemaTester, RunTestsInsideTransaction}
-import java.util.UUID
-
 import PrimitiveTypeMode._
+import java.util.UUID
 
 object UuidTests {
   class UuidAsProperty extends KeyedEntity[Long] {
@@ -23,6 +22,8 @@ object UuidTests {
 
   class UuidAsOption(val optionalUuid: Option[UUID], val optionalInt : Option[Int]) extends KeyedEntity[Long] {
     val id: Long = 0
+
+    def this() = this(Some(new UUID(0,0)), Some(1))
   }
 
   object TestSchema extends Schema {
