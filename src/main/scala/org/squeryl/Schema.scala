@@ -71,11 +71,6 @@ trait Schema {
     res
   }
 
-  @deprecated("will be removed in a future version, use findTablesFor instead.")
-  def findTableFor[A](a: A): Option[Table[A]] = {
-    val c = a.asInstanceOf[AnyRef].getClass
-    _tables.find(_.posoMetaData.clasz == c).asInstanceOf[Option[Table[A]]]
-  }
 
   def findTablesFor[A](a: A): Iterable[Table[A]] = {
     val c = a.asInstanceOf[AnyRef].getClass
@@ -196,7 +191,7 @@ trait Schema {
   private def _writeColumnGroupAttributeAssignments: Seq[String] =
     for(cgaa <- _columnGroupAttributeAssignments)
       yield _writeIndexDeclarationIfApplicable(cgaa.columnAttributes, cgaa.columns, cgaa.name).
-        getOrElse(error("emtpy attribute list should not be possible to create with DSL (Squeryl bug)."))
+        getOrElse(org.squeryl.internals.Utils.throwError("emtpy attribute list should not be possible to create with DSL (Squeryl bug)."))
 
   private def _writeIndexDeclarationIfApplicable(columnAttributes: Seq[ColumnAttribute], cols: Seq[FieldMetaData], name: Option[String]): Option[String] = {
 
@@ -383,10 +378,6 @@ trait Schema {
   def applyDefaultForeignKeyPolicy(foreignKeyDeclaration: ForeignKeyDeclaration) =
     foreignKeyDeclaration.constrainReference
 
-  @deprecated("Use applyDefaultForeignKeyPolicy instead")
-  final def applyDefaultForeingKeyPolicy(foreingKeyDeclaration: ForeignKeyDeclaration) =
-    applyDefaultForeignKeyPolicy(foreingKeyDeclaration)
-
   /**
    * @return a Tuple2 with (LengthOfDecimal, Scale) that will determine the storage
    * length of the database type that map fields of type java.lang.BigDecimal
@@ -415,7 +406,7 @@ trait Schema {
   protected def on[A](table: Table[A]) (declarations: A=>Seq[BaseColumnAttributeAssignment]) = {
 
     if(table == null)
-      error("on function called with null argument in " + this.getClass.getName +
+      org.squeryl.internals.Utils.throwError("on function called with null argument in " + this.getClass.getName +
             " tables must be initialized before declarations.")
 
     val colAss: Seq[BaseColumnAttributeAssignment] =
@@ -429,7 +420,7 @@ trait Schema {
       case dva:DefaultValueAssignment    => {
 
         if(! dva.value.isInstanceOf[ConstantExpressionNode[_]])
-          error("error in declaration of column "+ table.prefixedName + "." + dva.left.nameOfProperty + ", " +
+          org.squeryl.internals.Utils.throwError("error in declaration of column "+ table.prefixedName + "." + dva.left.nameOfProperty + ", " +
                 "only constant expressions are supported in 'defaultsTo' declaration")
 
         dva.left._defaultValue = Some(dva.value.asInstanceOf[ConstantExpressionNode[_]])
@@ -452,7 +443,7 @@ trait Schema {
         _addColumnGroupAttributeAssignment(ctaa)
       }
       
-      case a:Any => error("did not match on " + a.getClass.getName)
+      case a:Any => org.squeryl.internals.Utils.throwError("did not match on " + a.getClass.getName)
     }
 
 //    for(ca <- colAss.find(_.isIdFieldOfKeyedEntity))
@@ -470,7 +461,7 @@ trait Schema {
       case cga:CompositeKeyAttributeAssignment => {}
       case caa:ColumnAttributeAssignment => {
         for(ca <- caa.columnAttributes if ca.isInstanceOf[AutoIncremented] && !(caa.left.isIdFieldOfKeyedEntity))
-          error("Field " + caa.left.nameOfProperty + " of table " + table.name +
+          org.squeryl.internals.Utils.throwError("Field " + caa.left.nameOfProperty + " of table " + table.name +
                 " is declared as autoIncremented, auto increment is currently only supported on KeyedEntity[A].id")
       }
       case dva:Any => {}

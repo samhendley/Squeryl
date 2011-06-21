@@ -41,8 +41,6 @@ trait Person
 class Student(var name: String, var lastName: String, var age: Option[Int], var gender: Int, var addressId: Option[Int], var isMultilingual: Option[Boolean])
   extends SchoolDbObject with Person {
 
-  def this() = this("","",Some(0),0, Some(0), Some(false))
-
   override def toString = "Student:" + id + ":" + name
 }
 
@@ -55,7 +53,6 @@ case class Course(var name: String, var startDate: Date, var finalExamDate: Opti
 
   def occVersionNumberZ = occVersionNumber
 
-  def this() = this("", null, Some(new Date), 0, Some(0), false)
   override def toString = "Course:" + id + ":" + name
 
   var rawData = {
@@ -68,21 +65,17 @@ case class Course(var name: String, var startDate: Date, var finalExamDate: Opti
 class CourseSubscription(var courseId: Int, var studentId: Int)
   extends SchoolDbObject {
 
-  def this() = this(0,0)
   override def toString = "CourseSubscription:" + id
 }
 
 class CourseAssignment(var courseId: Int, var professorId: Long)
   extends SchoolDbObject {
 
-  def this() = this(0,0)
   override def toString = "CourseAssignment:" + id
 }
 
 class Address(var streetName: String, var numberz:Int, var numberSuffix:Option[String], var appNumber: Option[Int], var appNumberSuffix: Option[String])
   extends SchoolDbObject {
-
-  def this() = this(null,0, Some(""),Some(0), Some(""))
 
   override def toString = "rue " + streetName 
 }
@@ -90,7 +83,6 @@ class Address(var streetName: String, var numberz:Int, var numberSuffix:Option[S
 class Professor(var lastName: String, var yearlySalary: Float, var weight: Option[Float], var yearlySalaryBD: BigDecimal, var weightInBD: Option[BigDecimal]) extends KeyedEntity[Long] with Person {
 
   var id: Long = 0
-  def this() = this("", 0.0F, Some(0.0F), 80.0F, Some(0))
   override def toString = "Professor:" + id + ",sal=" + yearlySalary
 }
 
@@ -341,35 +333,8 @@ abstract class FullOuterJoinTests extends SchoolDbTestBase{
   import org.squeryl.PrimitiveTypeMode._
   import schema._
 
-  def fullOuterJoinStudentAddresses =
-    from(students, addresses)((s,a) =>
-      select(fullOuterJoin(s, a, s.addressId === a.id))
-      orderBy(s.id)
-    )
 
-  test("FullOuterJoin1") {
-    val testInstance = sharedTestInstance; import testInstance._
 
-    //println(fullOuterJoinStudentAddresses.dumpAst)
-    //println(fullOuterJoinStudentAddresses)
-
-    val res =
-      (for(t <- fullOuterJoinStudentAddresses)
-       yield (t._1.map(s=>s.id), t._2.map(a=>a.id))).toList
-
-    val expected = List(
-      (Some(xiao.id),Some(oneHutchissonStreet.id)),
-      (Some(georgi.id),Some(oneHutchissonStreet.id)),
-      (Some(pratap.id),Some(oneTwoThreePieIXStreet.id)),
-      (Some(gontran.id),Some(oneHutchissonStreet.id)),
-      (Some(gaitan.id),None),
-      (None,Some(twoHutchissonStreet.id))
-    )
-
-    assert(expected == res, "expected :\n " + expected + "\ngot :\n " + res)
-
-    passed('testFullOuterJoin1 )
-  }
   test("NewLeftOuterJoin1Reverse")  {
     val testInstance = sharedTestInstance; import testInstance._
 
@@ -593,93 +558,6 @@ abstract class SchoolDbTestRun extends SchoolDbTestBase {
 
     assert(professors.map(System.identityHashCode(_)).toSet == professorsCreatedWithFactory.toSet)
   }
-
-
-
-  test("LeftOuterJoin1"){
-    val testInstance = sharedTestInstance; import testInstance._
-
-    //loggerOn
-
-    val leftOuterJoinStudentAddresses =
-      from(students, addresses)((s,a) =>
-        select((s,leftOuterJoin(a, s.addressId === a.id)))
-        orderBy(s.id)
-      )
-
-    val res =
-      (for(t <- leftOuterJoinStudentAddresses)
-       yield (t._1.id, t._2.map(a=>a.id))).toList
-
-    val expected = List(
-      (xiao.id,Some(oneHutchissonStreet.id)),
-      (georgi.id,Some(oneHutchissonStreet.id)),
-      (pratap.id,Some(oneTwoThreePieIXStreet.id)),
-      (gontran.id,Some(oneHutchissonStreet.id)),
-      (gaitan.id,None))
-
-    assert(expected == res, "expected :\n " + expected + "\ngot : \n " + res)
-
-    passed('testOuterJoin1 )
-  }
-
-  test("LeftOuterJoin2") {
-    val testInstance = sharedTestInstance; import testInstance._
-
-    //loggerOn
-
-    val leftOuterJoinStudentAddresses =
-      from(students, addresses, addresses)((s,a,a2) =>
-        select((s,leftOuterJoin(a, s.addressId === a.id), leftOuterJoin(a2, s.addressId === a2.id)))
-        orderBy(s.id)
-      )
-
-    val res =
-      (for(t <- leftOuterJoinStudentAddresses)
-       yield (t._1.id, t._2.map(a=>a.id), t._3.map(a=>a.id))).toList
-
-    val expected = List(
-      (xiao.id,Some(oneHutchissonStreet.id),Some(oneHutchissonStreet.id)),
-      (georgi.id,Some(oneHutchissonStreet.id),Some(oneHutchissonStreet.id)),
-      (pratap.id,Some(oneTwoThreePieIXStreet.id),Some(oneTwoThreePieIXStreet.id)),
-      (gontran.id,Some(oneHutchissonStreet.id),Some(oneHutchissonStreet.id)),
-      (gaitan.id,None,None))
-
-    assert(expected == res, "expected :\n " + expected + "\ngot : \n " + res)
-
-    passed('testOuterJoin2)
-  }
-
-
-
-  test("OuterJoinMixed1") {
-    val testInstance = sharedTestInstance; import testInstance._
-
-    //Creates a situation with two implicit inner joins and one outer join
-    val studentsWithCoursesInFeb2010OuterJoinAdresses =
-      from(students, courses, courseSubscriptions, addresses)((student, course, subscription, address) =>
-        where(student.id === subscription.studentId and
-              subscription.courseId === course.id and
-              course.startDate === feb2010).
-        select((student, course, leftOuterJoin(address, student.addressId === address.id))).
-        orderBy(student.id)
-      )
-
-    val res: Seq[(Int, Int, Option[Int])] = studentsWithCoursesInFeb2010OuterJoinAdresses.map({
-      case (student, course, address) =>
-        (student.id, course.id, address.map(_.id))
-    })(collection.breakOut)
-
-    val expected = Seq(
-      (pratap.id, counterpoint.id, Some(oneTwoThreePieIXStreet.id)),
-      (gaitan.id, mandarin.id,     None)
-    )
-
-    assert(expected sameElements res, "expected :\n " + expected + "\ngot : \n " + res)
-
-    passed('testOuterJoinMixed1 )
-  }
-
 
 
   test("MetaData"){
@@ -1208,7 +1086,7 @@ abstract class SchoolDbTestRun extends SchoolDbTestBase {
       case e:StaleUpdateException => ex = Some(e)
     }
 
-    ex.getOrElse(error("StaleUpdateException should have get thrown on concurrent update test."))
+    ex.getOrElse(org.squeryl.internals.Utils.throwError("StaleUpdateException should have get thrown on concurrent update test."))
 
     val expectedVersionNumber = ht.occVersionNumberZ + 1
 
@@ -1465,7 +1343,7 @@ abstract class SchoolDbTestRun extends SchoolDbTestBase {
   test("Boolean2LogicalBooleanConversion") {
     val testInstance = sharedTestInstance; import testInstance._
 
-    val multilingualStudents = students.where(_.isMultilingual).map(_.id).toSet
+    val multilingualStudents = students.where(_.isMultilingual === Some(true)).map(_.id).toSet
 
     //println(multilingualStudents)
     //List(Student:1:Xiao, Student:4:Gontran, Student:5:Gaitan)
@@ -1575,7 +1453,7 @@ abstract class SchoolDbTestRun extends SchoolDbTestBase {
       from(qStudentsFromStudents)(s =>
         where(exists(from(addresses)((a) =>
           where(s.addressId === a.id)
-          select(a))))
+          select(a.id))))
         select(s))
 
     val res = for (s <- studentsWithAnAddress) yield s.name
